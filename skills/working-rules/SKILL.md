@@ -40,6 +40,9 @@ repeating it back.
 - **Report exactly.** After each piece: the files changed, the commands run and their results (counts and
   failures). Explain every failure, including ones that look unrelated. Never say a test passes without
   running it in that turn.
+- **Pre-existing failures stay the user's call.** A test that already failed in the baseline run is reported
+  as pre-existing. Change code outside the task's scope to fix it only when the task asks for it or the user
+  says so, even when a prompt asks for a passing state.
 - **Verify, do not assert.** Check claims against the code, the test output, and the documentation or
   source of the library involved. A third-party API's behavior is a guess until it is read in its docs or
   source, or observed in a run.

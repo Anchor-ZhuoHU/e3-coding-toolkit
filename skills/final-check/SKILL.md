@@ -25,13 +25,17 @@ task, proves each line with evidence, and leaves the workspace in a state that i
    Status is one of `met`, `partial`, `missing`, `not applicable` (with the reason). A line whose evidence
    is only "the code looks right" is `partial` until a test or a run shows it.
 4. **Run the checks.** The relevant test suite, plus the build, type check or lint the repository already
-   uses. Record the exact commands and the counts. A failure is fixed or explained, never skipped.
+   uses. Record the exact commands and the counts. A failure is fixed or explained, never skipped. A test
+   that already failed in the baseline run (`BRIEF.md`) is pre-existing: report it as such, and change code
+   outside the task's scope to fix it only when the task asks for it or the user says so.
 5. **Review the diff.** `git status --porcelain --untracked-files=all`, `git diff --stat`, then the diff
    itself. Remove what does not belong in the deliverable: scratch files, logs, caches, `.env` files,
    large generated data, debug prints, commented-out code, unrelated reformatting, notes to yourself.
    Nothing secret, nothing personal.
 6. **Close the gaps that fit.** Fix `partial` and `missing` lines in order of value per minute, running
-   the tests after each fix. What does not fit becomes a known limitation, said plainly.
+   the tests after each fix. A gap that needs more than a small change (a new component, or more than
+   about ten minutes) is the user's call: list it with its estimate and ask before building it. What does
+   not fit becomes a known limitation, said plainly.
 7. **Docs.** When the task asks for documentation or the repository has a README for this area: how to
    run it, how to run its tests, what was built, the main tradeoffs, the known limitations, the next steps.
 8. **Summary and pull request text** (template in `assets/summary.md`): what was delivered, one line per
