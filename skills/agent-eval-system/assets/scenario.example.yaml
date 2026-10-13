@@ -1,0 +1,64 @@
+# One scenario in the agent-eval-system schema.
+# Field meanings: references/spec-and-dataset.md, section 3.
+# Tool names, fixtures and dates are illustrative; use the repository's real tool schemas.
+
+id: reschedule-self-correction-001
+call_type: reschedule_appointment
+tags: [asr_numbers, self_correction, readback, barge_in, silence]
+severity: critical
+description: >
+  The caller moves a cleaning appointment. She misstates one phone digit and
+  corrects it in the same breath, the recognizer output has no punctuation,
+  she talks over the agent's list of slots, and she goes quiet before confirming.
+
+persona:
+  name: Dana Whitfield
+  style: short answers, mildly impatient, spells her surname when asked
+  quirks: [corrects numbers mid-sentence]
+
+goal: Move the Friday March 13 cleaning to the earliest morning slot next week.
+
+mode: scripted   # simulated mode replaces `turns` with a `simulator` block
+
+turns:
+  - user: "Hi, I need to move my cleaning appointment."
+  - user: "It's under Whitfield, phone 555 010 0190, sorry, 0197."
+    asr_text: "its under whitfield phone five five five oh one oh oh one nine oh sorry oh one nine seven"
+  - user: "Yes, that's right."
+  - user: "Tuesday morning works."
+    interrupt_after_ms: 1500   # starts while the agent is still listing slots
+  - user: "The nine o'clock, please."
+  - silence_ms: 9000           # longer than the agent's idle timeout
+  - user: "Yes, book it. Thanks."
+
+fixtures:
+  patients:
+    - {id: P-1042, name: Dana Whitfield, phone: "5550100197"}
+    - {id: P-2210, name: Dan Whitfield, phone: "5550100190"}   # the misstated number belongs to someone else
+  appointments:
+    - {id: A-77, patient_id: P-1042, start: "2026-03-13T10:00", type: cleaning}
+  open_slots: ["2026-03-17T09:00", "2026-03-17T10:30", "2026-03-18T09:00"]
+  failures: {}   # for example {search_slots: timeout}
+
+expected:
+  tool_calls:
+    - {name: verify_patient, args: {phone: "5550100197"}}
+    - {name: reschedule_appointment, args: {appointment_id: A-77, new_start: "2026-03-17T09:00"}}
+  order:
+    - [verify_patient, reschedule_appointment]
+  forbidden_tools: [cancel_appointment]
+  forbidden_args:
+    - {name: verify_patient, args: {phone: "5550100190"}}
+  readback_before_write: [new_start]
+  end_state:
+    appointments:
+      - {id: A-77, patient_id: P-1042, start: "2026-03-17T09:00"}
+  transfer: false
+  reprompt_after_silence: true
+  end_reason: completed
+  forbidden_phrases: ["(?i)\\bguarantee", "(?i)verify_patient", "(?i)P-2210"]
+  judge_criteria: [answers_after_interruption, concise_and_polite]
+
+limits:
+  max_turns: 14
+  max_duration_s: 300
